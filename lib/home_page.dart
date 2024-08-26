@@ -31,11 +31,11 @@ class ImageToPdfPageState extends State<ImageToPdfPage> {
 
     setState(() {
       _isLoading = false; // Stop loading for image picking
-      if (selectedImages != null && selectedImages.length == 3) {
+      if (selectedImages != null && selectedImages.isNotEmpty && selectedImages.length <= 3) {
         _images = selectedImages;
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Please select exactly 3 images.")),
+          SnackBar(content: Text("Please select between 1 and 3 images.")),
         );
       }
     });
@@ -107,36 +107,36 @@ class ImageToPdfPageState extends State<ImageToPdfPage> {
         child: _isLoading || _isGenerating // Show loading indicator if either is loading
             ? CircularProgressIndicator()
             : Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-              onPressed: _pickImages,
-              child: const Text("Pick 3 Images"),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _images!.length == 3 ? _generatePdf : null,
-              child: const Text("Generate PDF"),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                if (file.existsSync()) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => PdfViewerPage(pdfPath: file.path),
-                    ),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("PDF file not found.")),
-                  );
-                }
-              },
-              child: const Text("Open PDF"),
-            ),
-          ],
-        ),
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: _pickImages,
+                    child: const Text("Pick Images"),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: _images != null && _images!.isNotEmpty ? _generatePdf : null,
+                    child: const Text("Generate PDF"),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      if (file.existsSync()) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PdfViewerPage(pdfPath: file.path),
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("PDF file not found.")),
+                        );
+                      }
+                    },
+                    child: const Text("Open PDF"),
+                  ),
+                ],
+              ),
       ),
     );
   }

@@ -11,6 +11,7 @@ class PdfViewerPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text("View PDF")),
       body: PdfView(
+        scrollDirection: Axis.vertical,
         controller: PdfController(
           document: PdfDocument.openFile(pdfPath),
         ),
