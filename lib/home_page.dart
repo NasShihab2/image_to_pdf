@@ -27,15 +27,15 @@ class ImageToPdfPageState extends State<ImageToPdfPage> {
       _isLoading = true; // Start loading for image picking
     });
 
-    final List<XFile>? selectedImages = await _picker.pickMultiImage(imageQuality: 80);
+    final List<XFile> selectedImages = await _picker.pickMultiImage(imageQuality: 80);
 
     setState(() {
       _isLoading = false; // Stop loading for image picking
-      if (selectedImages != null && selectedImages.isNotEmpty && selectedImages.length <= 3) {
+      if (selectedImages.isNotEmpty && selectedImages.length <= 3) {
         _images = selectedImages;
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Please select between 1 and 3 images.")),
+          const SnackBar(content: Text("Please select between 1 and 3 images.")),
         );
       }
     });
@@ -80,13 +80,17 @@ class ImageToPdfPageState extends State<ImageToPdfPage> {
     Uint8List pdfData = await pdf.save();
     if (pdfData.lengthInBytes <= 1024 * 1024) {
       await file.writeAsBytes(pdfData);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("PDF saved in Downloads at ${file.path}")),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("PDF saved in Downloads at ${file.path}")),
+        );
+      }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("PDF exceeds 1 MB. Try reducing image size or quality.")),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("PDF exceeds 1 MB. Try reducing image size or quality.")),
+        );
+      }
     }
 
     setState(() {
@@ -105,7 +109,7 @@ class ImageToPdfPageState extends State<ImageToPdfPage> {
       appBar: AppBar(title: const Text("Image to PDF")),
       body: Center(
         child: _isLoading || _isGenerating // Show loading indicator if either is loading
-            ? CircularProgressIndicator()
+            ? const CircularProgressIndicator()
             : Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -113,6 +117,27 @@ class ImageToPdfPageState extends State<ImageToPdfPage> {
                     onPressed: _pickImages,
                     child: const Text("Pick Images"),
                   ),
+                  const SizedBox(height: 20),
+                  // Display selected images in 100x100 boxes
+                  _images != null && _images!.isNotEmpty
+                      ? Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          children: _images!.map((image) {
+                            return Container(
+                              width: 100,
+                              height: 100,
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey),
+                                image: DecorationImage(
+                                  image: FileImage(File(image.path)),
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        )
+                      : Container(),
                   const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: _images != null && _images!.isNotEmpty ? _generatePdf : null,
